@@ -12,7 +12,7 @@ export class AppConfigService {
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
       migrationsRun: true,
       migrations: ['dist/migrations/*.js'],
     };
