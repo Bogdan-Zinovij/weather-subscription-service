@@ -4,6 +4,7 @@ import { Subscription } from '../domain/subscription.model';
 import { SubscriptionRepository } from '../domain/subscription.repository.interface';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { MailService } from 'src/mail/application/mail.service';
+import { WeatherService } from 'src/weather/application/weather.service';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -18,6 +19,7 @@ export class SubscriptionService {
     @Inject('SubscriptionRepository')
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly mailService: MailService,
+    private readonly weatherService: WeatherService,
   ) {}
 
   async subscribe(dto: CreateSubscriptionDto): Promise<Subscription> {
@@ -96,5 +98,31 @@ export class SubscriptionService {
       subject: 'Confirm your subscription',
       text: `Use this token to confirm your subscription: ${token}`,
     });
+  }
+
+  async getConfirmedSubscriptionsByFrequency(
+    frequency: 'hourly' | 'daily',
+  ): Promise<Subscription[]> {
+    return this.subscriptionRepository.find({ frequency, confirmed: true });
+  }
+
+  async sendWeatherToSubscribers(frequency: 'hourly' | 'daily'): Promise<void> {
+    const subscribers =
+      await this.getConfirmedSubscriptionsByFrequency(frequency);
+
+    for (const sub of subscribers) {
+      try {
+        const weather = await this.weatherService.getCurrentWeather(sub.city);
+        const emailBody = `Current weather in ${sub.city}:\nTemperature: ${weather.temperature}°C\nHumidity: ${weather.humidity}%\nDescription: ${weather.description}`;
+
+        await this.mailService.sendMail({
+          receiverEmail: sub.email,
+          subject: `Weather update for ${sub.city}`,
+          text: emailBody,
+        });
+      } catch (err) {
+        console.error(`Failed to send weather to ${sub.email}:`, err);
+      }
+    }
   }
 }
