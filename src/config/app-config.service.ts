@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { MailerOptions } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AppConfigService {
@@ -16,6 +17,23 @@ export class AppConfigService {
       migrationsRun: true,
       migrations: ['dist/database/migrations/*.js'],
       logging: ['query', 'error', 'schema', 'warn'],
+    };
+  }
+
+  getMailerConfig(): MailerOptions {
+    return {
+      transport: {
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT ?? 587),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      },
+      defaults: {
+        from: `"${process.env.SMTP_SENDER_NAME ?? 'NoReply'}" <${process.env.SMTP_SENDER_EMAIL}>`,
+      },
     };
   }
 }

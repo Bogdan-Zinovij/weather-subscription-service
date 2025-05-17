@@ -3,6 +3,7 @@ import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
 import { Subscription } from '../domain/subscription.model';
 import { SubscriptionRepository } from '../domain/subscription.repository.interface';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
+import { MailService } from 'src/mail/application/mail.service';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -16,6 +17,7 @@ export class SubscriptionService {
   constructor(
     @Inject('SubscriptionRepository')
     private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly mailService: MailService,
   ) {}
 
   async subscribe(dto: CreateSubscriptionDto): Promise<Subscription> {
@@ -42,7 +44,7 @@ export class SubscriptionService {
       token,
     });
 
-    this.sendConfirmationEmail(created.email, token);
+    await this.sendConfirmationEmail(created.email, token);
 
     return created;
   }
@@ -85,7 +87,14 @@ export class SubscriptionService {
     await this.subscriptionRepository.remove(found[0].id);
   }
 
-  private sendConfirmationEmail(email: string, token: string): void {
-    console.log(`Send confirmation email to ${email} with token: ${token}`);
+  private async sendConfirmationEmail(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    await this.mailService.sendMail({
+      receiverEmail: email,
+      subject: 'Confirm your subscription',
+      text: `Use this token to confirm your subscription: ${token}`,
+    });
   }
 }
