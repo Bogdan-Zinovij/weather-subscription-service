@@ -9,6 +9,7 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   SubscriptionService,
@@ -17,12 +18,14 @@ import {
 import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
 import { HTTP_ERROR_MESSAGES } from '../../common/constants/http.constants';
 import { Subscription } from '../domain/subscription.model';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
-
   @Post('subscribe')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(AnyFilesInterceptor())
   async subscribe(@Body() dto: CreateSubscriptionDto): Promise<Subscription> {
     try {
       return await this.subscriptionService.subscribe(dto);
