@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
+      }
+      .form-element {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+      .error {
+        border: 2px solid red;
+      }
+      .alert {
+        padding: 10px;
+        margin-top: 10px;
+      }
+      .alert.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .alert.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Weather Search</h2>
+    <input
+      type="text"
+      id="searchCity"
+      class="form-element"
+      placeholder="Enter city"
+    />
+    <button onclick="searchWeather()" class="form-element">Search</button>
+    <div id="weatherResult"></div>
+
+    <h2>Subscribe to Weather Updates</h2>
+    <form id="subscribeForm">
+      <input
+        type="text"
+        id="subCity"
+        class="form-element"
+        placeholder="City"
+        required
+      />
+      <input
+        type="email"
+        id="email"
+        class="form-element"
+        placeholder="Email"
+        required
+      />
+      <select id="frequency" class="form-element" required>
+        <option value="">Select frequency</option>
+        <option value="hourly">Hourly</option>
+        <option value="daily">Daily</option>
+      </select>
+      <button type="submit" class="form-element">Subscribe</button>
+    </form>
+    <div id="formAlert"></div>
+
+    <script>
+      async function searchWeather() {
+        const city = document.getElementById('searchCity').value.trim();
+        const resultDiv = document.getElementById('weatherResult');
+        resultDiv.innerHTML = '';
+        if (!city) {
+          resultDiv.textContent = 'Please enter a city.';
+          return;
+        }
+        try {
+          const res = await fetch(
+            `http://localhost:3000/weather?city=${encodeURIComponent(city)}`,
+          );
+          if (!res.ok) throw new Error('City not found');
+          const data = await res.json();
+          resultDiv.innerHTML = `<p>Temperature: ${data.temperature}°C</p><p>Humidity: ${data.humidity}%</p><p>Description: ${data.description}</p>`;
+        } catch (err) {
+          resultDiv.textContent = 'Error fetching weather data.';
+        }
+      }
+
+      document
+        .getElementById('subscribeForm')
+        .addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const emailInput = document.getElementById('email');
+          const cityInput = document.getElementById('subCity');
+          const freqSelect = document.getElementById('frequency');
+          const alertDiv = document.getElementById('formAlert');
+
+          emailInput.classList.remove('error');
+          cityInput.classList.remove('error');
+          freqSelect.classList.remove('error');
+          alertDiv.innerHTML = '';
+
+          const email = emailInput.value.trim();
+          const city = cityInput.value.trim();
+          const frequency = freqSelect.value;
+
+          let hasError = false;
+          if (!email || !email.includes('@')) {
+            emailInput.classList.add('error');
+            hasError = true;
+          }
+          if (!city) {
+            cityInput.classList.add('error');
+            hasError = true;
+          }
+          if (!frequency) {
+            freqSelect.classList.add('error');
+            hasError = true;
+          }
+          if (hasError) return;
+
+          try {
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('city', city);
+            formData.append('frequency', frequency);
+
+            const res = await fetch(
+              'http://localhost:3000/subscription/subscribe',
+              {
+                method: 'POST',
+                body: formData,
+              },
+            );
+
+            if (res.status === 200) {
+              alertDiv.innerHTML =
+                '<div class="alert success">Successful subscription, check your email for the confirmation link</div>';
+              emailInput.value = '';
+              cityInput.value = '';
+              freqSelect.value = '';
+            } else if (res.status === 409) {
+              alertDiv.innerHTML =
+                '<div class="alert error">This email already has already subscribed</div>';
+            } else {
+              alertDiv.innerHTML =
+                '<div class="alert error">Invalid input data</div>';
+            }
+          } catch (err) {
+            alertDiv.innerHTML =
+              '<div class="alert error">Server error. Please try again later.</div>';
+          }
+        });
+    </script>
+  </body>
+</html>
