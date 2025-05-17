@@ -5,6 +5,7 @@ import { SubscriptionRepository } from '../domain/subscription.repository.interf
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { MailService } from 'src/mail/application/mail.service';
 import { WeatherService } from 'src/weather/application/weather.service';
+import { Weather } from 'src/weather/domain/weather.model';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -110,9 +111,19 @@ export class SubscriptionService {
     const subscribers =
       await this.getConfirmedSubscriptionsByFrequency(frequency);
 
+    const weatherCache = new Map<string, Weather>();
+
     for (const sub of subscribers) {
       try {
-        const weather = await this.weatherService.getCurrentWeather(sub.city);
+        let weather: Weather;
+
+        if (weatherCache.has(sub.city)) {
+          weather = weatherCache.get(sub.city)!;
+        } else {
+          weather = await this.weatherService.getCurrentWeather(sub.city);
+          weatherCache.set(sub.city, weather);
+        }
+
         const emailBody = `Current weather in ${sub.city}:\nTemperature: ${weather.temperature}°C\nHumidity: ${weather.humidity}%\nDescription: ${weather.description}`;
 
         await this.mailService.sendMail({
