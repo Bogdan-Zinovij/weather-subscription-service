@@ -8,12 +8,18 @@ import { WeatherApiResponse } from '../interfaces/weatherapi-response.interface'
 
 @Injectable()
 export class WeatherService {
-  private readonly baseUrl = 'http://api.weatherapi.com/v1/current.json';
+  private readonly baseUrl: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    const baseUrl = this.configService.get<string>('WEATHER_API_BASE_URL');
+    if (!baseUrl) {
+      throw new Error('WEATHER_API_BASE_URL is not defined in configuration');
+    }
+    this.baseUrl = baseUrl;
+  }
 
   async getCurrentWeather(city: string): Promise<Weather> {
     const apiKey = this.configService.get<string>('WEATHER_API_KEY');
@@ -22,6 +28,7 @@ export class WeatherService {
     const response: AxiosResponse<WeatherApiResponse> = await lastValueFrom(
       this.httpService.get<WeatherApiResponse>(url),
     );
+
     const data = response.data;
 
     return new Weather(

@@ -4,8 +4,11 @@ import {
   Query,
   BadRequestException,
   NotFoundException,
+  HttpStatus,
 } from '@nestjs/common';
 import { WeatherService } from '../application/weather.service';
+import { HTTP_ERROR_MESSAGES } from '../../common/constants/http.constants';
+import { HttpError } from 'src/common/interfaces/http-error.interface';
 import { Weather } from '../domain/weather.model';
 
 @Controller('weather')
@@ -15,25 +18,24 @@ export class WeatherController {
   @Get()
   async getWeather(@Query('city') city: string): Promise<Weather> {
     if (!city) {
-      throw new BadRequestException('City parameter is required');
-    }
-
-    interface HttpError {
-      response?: {
-        status?: number;
-      };
+      throw new BadRequestException(
+        HTTP_ERROR_MESSAGES.WEATHER_INVALID_REQUEST,
+      );
     }
 
     try {
-      return await this.weatherService.getCurrentWeather(city);
+      const weather = await this.weatherService.getCurrentWeather(city);
+      return weather;
     } catch (err: unknown) {
       const error = err as HttpError;
 
-      if (error.response?.status === 404) {
-        throw new NotFoundException('City not found');
+      if (error.response?.status === HttpStatus.NOT_FOUND) {
+        throw new NotFoundException(HTTP_ERROR_MESSAGES.WEATHER_CITY_NOT_FOUND);
       }
 
-      throw new BadRequestException('Invalid request');
+      throw new BadRequestException(
+        HTTP_ERROR_MESSAGES.WEATHER_INVALID_REQUEST,
+      );
     }
   }
 }

@@ -1,61 +1,82 @@
 import {
   Controller,
   Post,
+  Body,
   Get,
   Param,
-  Body,
   HttpCode,
   HttpStatus,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
-import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiConsumes,
-} from '@nestjs/swagger';
-import { SubscriptionService } from '../application/subscription.service';
+  SubscriptionService,
+  SubscriptionError,
+} from '../application/subscription.service';
+import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
+import { HTTP_ERROR_MESSAGES } from '../../common/constants/http.constants';
+import { Subscription } from '../domain/subscription.model';
 
-@ApiTags('subscription')
-@Controller()
+@Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
   @Post('subscribe')
-  @ApiOperation({ summary: 'Subscribe to weather updates' })
-  @ApiConsumes('multipart/form-data') // <-- ключ для form-data
-  async subscribe(@Body() dto: CreateSubscriptionDto) {
-    return this.subscriptionService.subscribe(dto);
+  async subscribe(@Body() dto: CreateSubscriptionDto): Promise<Subscription> {
+    try {
+      return await this.subscriptionService.subscribe(dto);
+    } catch (err) {
+      if (err instanceof SubscriptionError) {
+        switch (err.message) {
+          case 'EMAIL_ALREADY_SUBSCRIBED':
+            throw new ConflictException(
+              HTTP_ERROR_MESSAGES.EMAIL_ALREADY_SUBSCRIBED,
+            );
+          default:
+            throw new BadRequestException(HTTP_ERROR_MESSAGES.INVALID_INPUT);
+        }
+      }
+      throw err;
+    }
   }
 
   @Get('confirm/:token')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Confirm email subscription' })
-  @ApiParam({
-    name: 'token',
-    required: true,
-    description: 'Confirmation token',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Subscription confirmed successfully',
-  })
-  @ApiResponse({ status: 400, description: 'Invalid token' })
-  @ApiResponse({ status: 404, description: 'Token not found' })
-  async confirm(@Param('token') token: string) {
-    return this.subscriptionService.confirm(token);
+  async confirm(@Param('token') token: string): Promise<Subscription | null> {
+    try {
+      return await this.subscriptionService.confirm(token);
+    } catch (err) {
+      if (err instanceof SubscriptionError) {
+        switch (err.message) {
+          case 'INVALID_TOKEN':
+            throw new BadRequestException(HTTP_ERROR_MESSAGES.INVALID_TOKEN);
+          case 'TOKEN_NOT_FOUND':
+            throw new NotFoundException(HTTP_ERROR_MESSAGES.TOKEN_NOT_FOUND);
+          default:
+            throw new BadRequestException(HTTP_ERROR_MESSAGES.INVALID_INPUT);
+        }
+      }
+      throw err;
+    }
   }
 
   @Get('unsubscribe/:token')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Unsubscribe from weather updates' })
-  @ApiParam({ name: 'token', required: true, description: 'Unsubscribe token' })
-  @ApiResponse({ status: 200, description: 'Unsubscribed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid token' })
-  @ApiResponse({ status: 404, description: 'Token not found' })
-  async unsubscribe(@Param('token') token: string) {
-    await this.subscriptionService.unsubscribe(token);
-    return { message: 'Unsubscribed successfully' };
+  async unsubscribe(@Param('token') token: string): Promise<void> {
+    try {
+      await this.subscriptionService.unsubscribe(token);
+    } catch (err) {
+      if (err instanceof SubscriptionError) {
+        switch (err.message) {
+          case 'INVALID_TOKEN':
+            throw new BadRequestException(HTTP_ERROR_MESSAGES.INVALID_TOKEN);
+          case 'TOKEN_NOT_FOUND':
+            throw new NotFoundException(HTTP_ERROR_MESSAGES.TOKEN_NOT_FOUND);
+          default:
+            throw new BadRequestException(HTTP_ERROR_MESSAGES.INVALID_INPUT);
+        }
+      }
+      throw err;
+    }
   }
 }

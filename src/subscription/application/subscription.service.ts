@@ -1,15 +1,21 @@
-import { Injectable, HttpException, HttpStatus, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
 import { Subscription } from '../domain/subscription.model';
 import { SubscriptionRepository } from '../domain/subscription.repository.interface';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate as isUuid } from 'uuid';
+
+export class SubscriptionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SubscriptionError';
+  }
+}
 
 @Injectable()
 export class SubscriptionService {
   constructor(
     @Inject('SubscriptionRepository')
     private readonly subscriptionRepository: SubscriptionRepository,
-    // private readonly mailService: MailService
   ) {}
 
   async subscribe(dto: CreateSubscriptionDto): Promise<Subscription> {
@@ -20,7 +26,7 @@ export class SubscriptionService {
     });
 
     if (existing.length > 0) {
-      throw new HttpException('Email already subscribed', HttpStatus.CONFLICT);
+      throw new SubscriptionError('EMAIL_ALREADY_SUBSCRIBED');
     }
 
     const subscriptionToCreate: Partial<Subscription> = {
@@ -30,25 +36,26 @@ export class SubscriptionService {
       confirmed: false,
     };
 
+    const token = uuidv4();
     const created = await this.subscriptionRepository.create({
       ...subscriptionToCreate,
-      token: uuidv4(),
+      token,
     });
 
-    this.sendConfirmationEmail(created.email, created['token']);
+    this.sendConfirmationEmail(created.email, token);
 
     return created;
   }
 
   async confirm(token: string): Promise<Subscription | null> {
-    if (!token) {
-      throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+    if (!isUuid(token)) {
+      throw new SubscriptionError('INVALID_TOKEN');
     }
 
     const found = await this.subscriptionRepository.find({ token });
 
     if (found.length === 0) {
-      throw new HttpException('Token not found', HttpStatus.NOT_FOUND);
+      throw new SubscriptionError('TOKEN_NOT_FOUND');
     }
 
     const subscription = found[0];
@@ -57,24 +64,22 @@ export class SubscriptionService {
       return subscription;
     }
 
-    const updated = await this.subscriptionRepository.update(
-      subscription['token'],
-      { confirmed: true },
-    );
+    const updated = await this.subscriptionRepository.update(subscription.id, {
+      confirmed: true,
+    });
 
     return updated;
   }
 
-  // Відписка
   async unsubscribe(token: string): Promise<void> {
-    if (!token) {
-      throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+    if (!isUuid(token)) {
+      throw new SubscriptionError('INVALID_TOKEN');
     }
 
     const found = await this.subscriptionRepository.find({ token });
 
     if (found.length === 0) {
-      throw new HttpException('Token not found', HttpStatus.NOT_FOUND);
+      throw new SubscriptionError('TOKEN_NOT_FOUND');
     }
 
     await this.subscriptionRepository.remove(found[0].id);
