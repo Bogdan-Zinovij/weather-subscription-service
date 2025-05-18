@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
-import { TokenRepository } from '../infrastructure/persistance/typeorm-token.repository';
 import { Token } from '../domain/token.domain';
+import { TokenRepository } from '../domain/token.repository.interface';
 
 export class TokenError extends Error {
   constructor(message: string) {
@@ -12,7 +12,10 @@ export class TokenError extends Error {
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly tokenRepository: TokenRepository) {}
+  constructor(
+    @Inject('TokenRepository')
+    private readonly tokenRepository: TokenRepository,
+  ) {}
 
   async create(): Promise<Token> {
     const value = uuidv4();

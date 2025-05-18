@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TokenEntity } from './token.entity';
 import { Token } from 'src/token/domain/token.domain';
+import { TokenRepository } from 'src/token/domain/token.repository.interface';
 
 @Injectable()
-export class TokenRepository {
+export class TypeOrmTokenRepository implements TokenRepository {
   constructor(
     @InjectRepository(TokenEntity)
     private readonly repo: Repository<TokenEntity>,
