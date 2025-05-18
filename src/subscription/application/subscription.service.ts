@@ -7,6 +7,7 @@ import { WeatherService } from 'src/weather/application/weather.service';
 import { Weather } from 'src/weather/domain/weather.model';
 import { TokenService, TokenError } from 'src/token/application/token.service';
 import { Token } from 'src/token/domain/token.domain';
+import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -108,12 +109,14 @@ export class SubscriptionService {
   }
 
   async getConfirmedSubscriptionsByFrequency(
-    frequency: 'hourly' | 'daily',
+    frequency: SubscriptionFrequencyEnum,
   ): Promise<Subscription[]> {
     return this.subscriptionRepository.find({ frequency, confirmed: true });
   }
 
-  async sendWeatherToSubscribers(frequency: 'hourly' | 'daily'): Promise<void> {
+  async sendWeatherToSubscribers(
+    frequency: SubscriptionFrequencyEnum,
+  ): Promise<void> {
     const subscribers =
       await this.getConfirmedSubscriptionsByFrequency(frequency);
 

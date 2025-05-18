@@ -1,4 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty } from 'class-validator';
+import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 
 export class CreateSubscriptionDto {
   @IsEmail()
@@ -7,6 +8,6 @@ export class CreateSubscriptionDto {
   @IsNotEmpty()
   city: string;
 
-  @IsEnum(['hourly', 'daily'])
-  frequency: 'hourly' | 'daily';
+  @IsEnum(SubscriptionFrequencyEnum)
+  frequency: SubscriptionFrequencyEnum;
 }

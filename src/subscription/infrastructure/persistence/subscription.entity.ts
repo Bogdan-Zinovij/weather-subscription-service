@@ -1,3 +1,4 @@
+import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 import { TokenEntity } from 'src/token/infrastructure/persistance/token.entity';
 import {
   Column,
@@ -19,7 +20,7 @@ export class SubscriptionEntity {
   city: string;
 
   @Column()
-  frequency: 'hourly' | 'daily';
+  frequency: SubscriptionFrequencyEnum;
 
   @Column({ default: false })
   confirmed: boolean;

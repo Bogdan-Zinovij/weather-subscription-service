@@ -4,6 +4,7 @@ import { SubscriptionEntity } from './subscription.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Subscription } from '../../domain/subscription.model';
 import { SubscriptionRepository } from '../../domain/subscription.repository.interface';
+import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 
 @Injectable()
 export class TypeOrmSubscriptionRepository implements SubscriptionRepository {
@@ -25,7 +26,7 @@ export class TypeOrmSubscriptionRepository implements SubscriptionRepository {
   async create(data: {
     email: string;
     city: string;
-    frequency: 'hourly' | 'daily';
+    frequency: SubscriptionFrequencyEnum;
     confirmed?: boolean;
     tokenId: string;
   }): Promise<Subscription> {
@@ -44,7 +45,7 @@ export class TypeOrmSubscriptionRepository implements SubscriptionRepository {
   async find(options: {
     email?: string;
     city?: string;
-    frequency?: 'hourly' | 'daily';
+    frequency?: SubscriptionFrequencyEnum;
     confirmed?: boolean;
     tokenId?: string;
   }): Promise<Subscription[]> {
