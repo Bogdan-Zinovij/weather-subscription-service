@@ -9,6 +9,7 @@ import { TokenService } from 'src/token/application/token.service';
 import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 import { SubscriptionErrorCode } from '../constants/subscription.errors';
 import { ConfigService } from '@nestjs/config';
+import { MailTemplates } from 'src/mail/constants/mail.templates';
 
 @Injectable()
 export class SubscriptionService {
@@ -84,8 +85,8 @@ export class SubscriptionService {
     await this.tokenService.remove(token.id);
     await this.mailService.sendMail({
       receiverEmail: subscription.email,
-      subject: 'Unsubscription',
-      html: '<p>Subscription cancellation successfully completed</p>',
+      subject: MailTemplates.UNSUBSCRIBE_SUCCESS.subject,
+      html: MailTemplates.UNSUBSCRIBE_SUCCESS.html(),
     });
   }
 
@@ -97,8 +98,8 @@ export class SubscriptionService {
 
     await this.mailService.sendMail({
       receiverEmail: email,
-      subject: 'Confirm your subscription',
-      html: `Click the link below to confirm your subscription:<br><a href="${confirmLink}">${confirmLink}</a>`,
+      subject: MailTemplates.CONFIRM_SUBSCRIPTION.subject,
+      html: MailTemplates.CONFIRM_SUBSCRIPTION.html(confirmLink),
     });
   }
 
@@ -126,24 +127,18 @@ export class SubscriptionService {
           weatherCache.set(sub.city, weather);
         }
 
+        console.log(sub);
         const token = await this.tokenService.findById(sub.tokenId);
         const unsubscribeLink = `http://${this.appDomain}:${this.appPort}/subscription/unsubscribe/${token.value}`;
 
-        const emailHtmlBody = `
-          <p>Current weather in <strong>${sub.city}</strong>:</p>
-          <ul>
-            <li>Temperature: ${weather.temperature}°C</li>
-            <li>Humidity: ${weather.humidity}%</li>
-            <li>Description: ${weather.description}</li>
-          </ul>
-          <p>If you no longer wish to receive updates, you can 
-          <a href="${unsubscribeLink}">unsubscribe here</a>.</p>
-        `;
-
         await this.mailService.sendMail({
           receiverEmail: sub.email,
-          subject: `Weather update for ${sub.city}`,
-          html: emailHtmlBody,
+          subject: MailTemplates.WEATHER_UPDATE.subject(sub.city),
+          html: MailTemplates.WEATHER_UPDATE.html(
+            sub.city,
+            weather,
+            unsubscribeLink,
+          ),
         });
       } catch (err) {
         console.error(`Failed to send weather to ${sub.email}:`, err);

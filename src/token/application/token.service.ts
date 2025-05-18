@@ -34,7 +34,7 @@ export class TokenService {
       throw new Error(TokenErrorCode.INVALID_TOKEN);
     }
 
-    const found = await this.tokenRepository.findByValue(id);
+    const found = await this.tokenRepository.findById(id);
     if (!found) {
       throw new Error(TokenErrorCode.TOKEN_NOT_FOUND);
     }
