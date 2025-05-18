@@ -8,6 +8,7 @@ import { MailModule } from 'src/mail/mail.module';
 import { WeatherModule } from 'src/weather/weather.module';
 import { SubscriptionCronService } from './application/subscription.cron';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TokenModule } from 'src/token/token.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ScheduleModule.forRoot(),
     MailModule,
     WeatherModule,
+    TokenModule,
   ],
   controllers: [SubscriptionController],
   providers: [

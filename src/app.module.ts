@@ -5,6 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { join } from 'path';
     DatabaseModule,
     WeatherModule,
     SubscriptionModule,
+    TokenModule,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { TokenEntity } from 'src/token/infrastructure/persistance/token.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('subscriptions')
 export class SubscriptionEntity {
@@ -17,6 +24,10 @@ export class SubscriptionEntity {
   @Column({ default: false })
   confirmed: boolean;
 
-  @Column()
-  token: string;
+  @OneToOne(() => TokenEntity, (token) => token.subscription, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  token: TokenEntity;
 }

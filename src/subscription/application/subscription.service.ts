@@ -2,10 +2,11 @@ import { Injectable, Inject } from '@nestjs/common';
 import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
 import { Subscription } from '../domain/subscription.model';
 import { SubscriptionRepository } from '../domain/subscription.repository.interface';
-import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { MailService } from 'src/mail/application/mail.service';
 import { WeatherService } from 'src/weather/application/weather.service';
 import { Weather } from 'src/weather/domain/weather.model';
+import { TokenService, TokenError } from 'src/token/application/token.service';
+import { Token } from 'src/token/domain/token.domain';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -19,6 +20,7 @@ export class SubscriptionService {
   constructor(
     @Inject('SubscriptionRepository')
     private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly tokenService: TokenService,
     private readonly mailService: MailService,
     private readonly weatherService: WeatherService,
   ) {}
@@ -29,65 +31,69 @@ export class SubscriptionService {
       city: dto.city,
       frequency: dto.frequency,
     });
-
     if (existing.length > 0) {
       throw new SubscriptionError('EMAIL_ALREADY_SUBSCRIBED');
     }
 
-    const subscriptionToCreate: Partial<Subscription> = {
+    const token = await this.tokenService.create();
+
+    const subscription = await this.subscriptionRepository.create({
       email: dto.email,
       city: dto.city,
       frequency: dto.frequency,
       confirmed: false,
-    };
-
-    const token = uuidv4();
-    const created = await this.subscriptionRepository.create({
-      ...subscriptionToCreate,
-      token,
+      tokenId: token.id,
     });
 
-    await this.sendConfirmationEmail(created.email, token);
-
-    return created;
+    await this.sendConfirmationEmail(subscription.email, token.value);
+    return subscription;
   }
 
-  async confirm(token: string): Promise<Subscription | null> {
-    if (!isUuid(token)) {
-      throw new SubscriptionError('INVALID_TOKEN');
+  async confirm(tokenValue: string): Promise<Subscription> {
+    let token: Token;
+    try {
+      token = await this.tokenService.findByValue(tokenValue);
+    } catch (err) {
+      if (err instanceof TokenError) {
+        throw new SubscriptionError(err.message);
+      }
+      throw err;
     }
 
-    const found = await this.subscriptionRepository.find({ token });
-
+    const found = await this.subscriptionRepository.find({ tokenId: token.id });
     if (found.length === 0) {
       throw new SubscriptionError('TOKEN_NOT_FOUND');
     }
 
     const subscription = found[0];
+    if (subscription.confirmed) return subscription;
 
-    if (subscription.confirmed) {
-      return subscription;
-    }
-
-    const updated = await this.subscriptionRepository.update(subscription.id, {
+    return (await this.subscriptionRepository.update(subscription.id, {
       confirmed: true,
-    });
-
-    return updated;
+    })) as Subscription;
   }
 
-  async unsubscribe(token: string): Promise<void> {
-    if (!isUuid(token)) {
-      throw new SubscriptionError('INVALID_TOKEN');
+  async unsubscribe(tokenValue: string): Promise<void> {
+    let token: Token;
+    try {
+      token = await this.tokenService.findByValue(tokenValue);
+    } catch (err) {
+      if (err instanceof TokenError) {
+        throw new SubscriptionError(err.message);
+      }
+      throw err;
     }
 
-    const found = await this.subscriptionRepository.find({ token });
+    const subscriptions = await this.subscriptionRepository.find({
+      tokenId: token.id,
+    });
 
-    if (found.length === 0) {
+    if (subscriptions.length === 0) {
       throw new SubscriptionError('TOKEN_NOT_FOUND');
     }
 
-    await this.subscriptionRepository.remove(found[0].id);
+    await this.subscriptionRepository.remove(subscriptions[0].id);
+    await this.tokenService.remove(token.id);
   }
 
   private async sendConfirmationEmail(
@@ -116,7 +122,6 @@ export class SubscriptionService {
     for (const sub of subscribers) {
       try {
         let weather: Weather;
-
         if (weatherCache.has(sub.city)) {
           weather = weatherCache.get(sub.city)!;
         } else {
