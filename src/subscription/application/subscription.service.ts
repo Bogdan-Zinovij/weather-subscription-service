@@ -5,16 +5,9 @@ import { SubscriptionRepository } from '../domain/subscription.repository.interf
 import { MailService } from 'src/mail/application/mail.service';
 import { WeatherService } from 'src/weather/application/weather.service';
 import { Weather } from 'src/weather/domain/weather.model';
-import { TokenService, TokenError } from 'src/token/application/token.service';
-import { Token } from 'src/token/domain/token.domain';
+import { TokenService } from 'src/token/application/token.service';
 import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
-
-export class SubscriptionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'SubscriptionError';
-  }
-}
+import { SubscriptionErrorCode } from '../constants/subscription.errors';
 
 @Injectable()
 export class SubscriptionService {
@@ -33,7 +26,7 @@ export class SubscriptionService {
       frequency: dto.frequency,
     });
     if (existing.length > 0) {
-      throw new SubscriptionError('EMAIL_ALREADY_SUBSCRIBED');
+      throw new Error(SubscriptionErrorCode.EMAIL_ALREADY_SUBSCRIBED);
     }
 
     const token = await this.tokenService.create();
@@ -51,19 +44,11 @@ export class SubscriptionService {
   }
 
   async confirm(tokenValue: string): Promise<Subscription> {
-    let token: Token;
-    try {
-      token = await this.tokenService.findByValue(tokenValue);
-    } catch (err) {
-      if (err instanceof TokenError) {
-        throw new SubscriptionError(err.message);
-      }
-      throw err;
-    }
+    const token = await this.tokenService.findByValue(tokenValue);
 
     const found = await this.subscriptionRepository.find({ tokenId: token.id });
     if (found.length === 0) {
-      throw new SubscriptionError('TOKEN_NOT_FOUND');
+      throw new Error(SubscriptionErrorCode.TOKEN_NOT_FOUND);
     }
 
     const subscription = found[0];
@@ -75,22 +60,14 @@ export class SubscriptionService {
   }
 
   async unsubscribe(tokenValue: string): Promise<void> {
-    let token: Token;
-    try {
-      token = await this.tokenService.findByValue(tokenValue);
-    } catch (err) {
-      if (err instanceof TokenError) {
-        throw new SubscriptionError(err.message);
-      }
-      throw err;
-    }
+    const token = await this.tokenService.findByValue(tokenValue);
 
     const subscriptions = await this.subscriptionRepository.find({
       tokenId: token.id,
     });
 
     if (subscriptions.length === 0) {
-      throw new SubscriptionError('TOKEN_NOT_FOUND');
+      throw new Error(SubscriptionErrorCode.TOKEN_NOT_FOUND);
     }
 
     await this.subscriptionRepository.remove(subscriptions[0].id);

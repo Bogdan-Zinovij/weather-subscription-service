@@ -2,13 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { Token } from '../domain/token.domain';
 import { TokenRepository } from '../domain/token.repository.interface';
-
-export class TokenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'TokenError';
-  }
-}
+import { TokenErrorCode } from '../constants/token.errors';
 
 @Injectable()
 export class TokenService {
@@ -24,12 +18,12 @@ export class TokenService {
 
   async findByValue(value: string): Promise<Token> {
     if (!isUuid(value)) {
-      throw new TokenError('INVALID_TOKEN');
+      throw new Error(TokenErrorCode.INVALID_TOKEN);
     }
 
     const found = await this.tokenRepository.findByValue(value);
     if (!found) {
-      throw new TokenError('TOKEN_NOT_FOUND');
+      throw new Error(TokenErrorCode.TOKEN_NOT_FOUND);
     }
 
     return found;
