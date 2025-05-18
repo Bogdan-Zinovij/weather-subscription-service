@@ -4,7 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
-import { WeatherApiResponse } from '../interfaces/weatherapi-response.interface';
+import { WeatherApiResponse } from '../../common/interfaces/weatherapi-response.interface';
 
 @Injectable()
 export class WeatherService {

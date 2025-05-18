@@ -5,7 +5,7 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
-export class CreateSubscriptionsTable1716000000001
+export class CreateSubscriptionsTable1747437840001
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
