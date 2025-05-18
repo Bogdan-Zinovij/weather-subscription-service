@@ -20,6 +20,19 @@ export class AppConfigService {
     };
   }
 
+  getWeatherApiConfig() {
+    const baseUrl = process.env.WEATHER_API_BASE_URL;
+    const apiKey = process.env.WEATHER_API_KEY;
+
+    if (!baseUrl || !apiKey) {
+      throw new Error(
+        'Missing WEATHER_API_BASE_URL or WEATHER_API_KEY in environment',
+      );
+    }
+
+    return { baseUrl, apiKey };
+  }
+
   getMailerConfig(): MailerOptions {
     return {
       transport: {

@@ -2,28 +2,26 @@ import { Injectable } from '@nestjs/common';
 import { Weather } from '../domain/weather.model';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { WeatherApiResponse } from '../../common/interfaces/weatherapi-response.interface';
+import { AppConfigService } from 'src/config/app-config.service';
 
 @Injectable()
 export class WeatherService {
   private readonly baseUrl: string;
+  private readonly apiKey: string;
 
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
+    appConfigService: AppConfigService,
   ) {
-    const baseUrl = this.configService.get<string>('WEATHER_API_BASE_URL');
-    if (!baseUrl) {
-      throw new Error('WEATHER_API_BASE_URL is not defined in configuration');
-    }
+    const { baseUrl, apiKey } = appConfigService.getWeatherApiConfig();
     this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
   }
 
   async getCurrentWeather(city: string): Promise<Weather> {
-    const apiKey = this.configService.get<string>('WEATHER_API_KEY');
-    const url = `${this.baseUrl}?key=${apiKey}&q=${encodeURIComponent(city)}&aqi=no`;
+    const url = `${this.baseUrl}?key=${this.apiKey}&q=${encodeURIComponent(city)}&aqi=no`;
 
     const response: AxiosResponse<WeatherApiResponse> = await lastValueFrom(
       this.httpService.get<WeatherApiResponse>(url),
