@@ -7,5 +7,6 @@ export class Subscription {
     public readonly city: string,
     public readonly frequency: SubscriptionFrequencyEnum,
     public confirmed: boolean,
+    public readonly tokenId: string,
   ) {}
 }

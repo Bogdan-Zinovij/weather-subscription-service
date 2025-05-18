@@ -11,6 +11,7 @@ export interface SubscriptionRepository {
   }): Promise<Subscription>;
 
   find(options: {
+    id?: string;
     email?: string;
     city?: string;
     frequency?: SubscriptionFrequencyEnum;

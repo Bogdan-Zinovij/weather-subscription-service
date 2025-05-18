@@ -20,6 +20,7 @@ export class TypeOrmSubscriptionRepository implements SubscriptionRepository {
       entity.city,
       entity.frequency,
       entity.confirmed,
+      entity.token.id,
     );
   }
 
