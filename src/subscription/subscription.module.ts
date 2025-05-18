@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { SubscriptionService } from './application/subscription.service';
 import { SubscriptionController } from './infrastructure/subscription.controller';
 import { SubscriptionEntity } from './infrastructure/persistence/subscription.entity';
@@ -14,6 +15,7 @@ import { TokenModule } from 'src/token/token.module';
   imports: [
     TypeOrmModule.forFeature([SubscriptionEntity]),
     ScheduleModule.forRoot(),
+    ConfigModule,
     MailModule,
     WeatherModule,
     TokenModule,

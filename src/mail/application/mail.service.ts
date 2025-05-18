@@ -4,7 +4,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 interface SendMailParams {
   receiverEmail: string;
   subject: string;
-  text: string;
+  html: string;
 }
 
 @Injectable()
@@ -14,8 +14,8 @@ export class MailService {
   async sendMail({
     receiverEmail,
     subject,
-    text,
+    html,
   }: SendMailParams): Promise<void> {
-    await this.mailerService.sendMail({ to: receiverEmail, subject, text });
+    await this.mailerService.sendMail({ to: receiverEmail, subject, html });
   }
 }

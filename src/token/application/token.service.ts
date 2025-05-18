@@ -29,6 +29,19 @@ export class TokenService {
     return found;
   }
 
+  async findById(id: string): Promise<Token> {
+    if (!isUuid(id)) {
+      throw new Error(TokenErrorCode.INVALID_TOKEN);
+    }
+
+    const found = await this.tokenRepository.findByValue(id);
+    if (!found) {
+      throw new Error(TokenErrorCode.TOKEN_NOT_FOUND);
+    }
+
+    return found;
+  }
+
   async remove(id: string): Promise<void> {
     await this.tokenRepository.remove(id);
   }

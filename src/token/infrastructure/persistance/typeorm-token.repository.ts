@@ -18,6 +18,11 @@ export class TypeOrmTokenRepository implements TokenRepository {
     return new Token(saved.id, saved.value);
   }
 
+  async findById(id: string): Promise<Token | null> {
+    const found = await this.repo.findOne({ where: { id } });
+    return found ? new Token(found.id, found.value) : null;
+  }
+
   async findByValue(value: string): Promise<Token | null> {
     const found = await this.repo.findOne({ where: { value } });
     return found ? new Token(found.id, found.value) : null;

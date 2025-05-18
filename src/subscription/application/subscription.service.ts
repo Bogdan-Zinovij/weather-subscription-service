@@ -8,16 +8,25 @@ import { Weather } from 'src/weather/domain/weather.model';
 import { TokenService } from 'src/token/application/token.service';
 import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 import { SubscriptionErrorCode } from '../constants/subscription.errors';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SubscriptionService {
+  private readonly appPort: string;
+  private readonly appDomain: string;
+
   constructor(
     @Inject('SubscriptionRepository')
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly tokenService: TokenService,
     private readonly mailService: MailService,
     private readonly weatherService: WeatherService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.appPort = this.configService.get<string>('APP_PORT') ?? '3000';
+    this.appDomain =
+      this.configService.get<string>('APP_DOMAIN') ?? 'localhost';
+  }
 
   async subscribe(dto: CreateSubscriptionDto): Promise<Subscription> {
     const existing = await this.subscriptionRepository.find({
@@ -70,18 +79,26 @@ export class SubscriptionService {
       throw new Error(SubscriptionErrorCode.TOKEN_NOT_FOUND);
     }
 
-    await this.subscriptionRepository.remove(subscriptions[0].id);
+    const subscription = subscriptions[0];
+    await this.subscriptionRepository.remove(subscription.id);
     await this.tokenService.remove(token.id);
+    await this.mailService.sendMail({
+      receiverEmail: subscription.email,
+      subject: 'Unsubscription',
+      html: '<p>Subscription cancellation successfully completed</p>',
+    });
   }
 
   private async sendConfirmationEmail(
     email: string,
     token: string,
   ): Promise<void> {
+    const confirmLink = `http://${this.appDomain}:${this.appPort}/subscription/confirm/${token}`;
+
     await this.mailService.sendMail({
       receiverEmail: email,
       subject: 'Confirm your subscription',
-      text: `Use this token to confirm your subscription: ${token}`,
+      html: `Click the link below to confirm your subscription:<br><a href="${confirmLink}">${confirmLink}</a>`,
     });
   }
 
@@ -109,12 +126,24 @@ export class SubscriptionService {
           weatherCache.set(sub.city, weather);
         }
 
-        const emailBody = `Current weather in ${sub.city}:\nTemperature: ${weather.temperature}°C\nHumidity: ${weather.humidity}%\nDescription: ${weather.description}`;
+        const token = await this.tokenService.findById(sub.tokenId);
+        const unsubscribeLink = `http://${this.appDomain}:${this.appPort}/subscription/unsubscribe/${token.value}`;
+
+        const emailHtmlBody = `
+          <p>Current weather in <strong>${sub.city}</strong>:</p>
+          <ul>
+            <li>Temperature: ${weather.temperature}°C</li>
+            <li>Humidity: ${weather.humidity}%</li>
+            <li>Description: ${weather.description}</li>
+          </ul>
+          <p>If you no longer wish to receive updates, you can 
+          <a href="${unsubscribeLink}">unsubscribe here</a>.</p>
+        `;
 
         await this.mailService.sendMail({
           receiverEmail: sub.email,
           subject: `Weather update for ${sub.city}`,
-          text: emailBody,
+          html: emailHtmlBody,
         });
       } catch (err) {
         console.error(`Failed to send weather to ${sub.email}:`, err);
