@@ -127,7 +127,6 @@ export class SubscriptionService {
           weatherCache.set(sub.city, weather);
         }
 
-        console.log(sub);
         const token = await this.tokenService.findById(sub.tokenId);
         const unsubscribeLink = `http://${this.appDomain}:${this.appPort}/subscription/unsubscribe/${token.value}`;
 
