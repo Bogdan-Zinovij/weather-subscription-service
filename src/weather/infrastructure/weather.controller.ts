@@ -27,9 +27,10 @@ export class WeatherController {
       const weather = await this.weatherService.getCurrentWeather(city);
       return weather;
     } catch (err: unknown) {
+      console.log(err);
       const error = err as HttpError;
 
-      if (error.response?.status === HttpStatus.NOT_FOUND) {
+      if (error.response?.status === HttpStatus.BAD_REQUEST) {
         throw new NotFoundException(HTTP_ERROR_MESSAGES.WEATHER_CITY_NOT_FOUND);
       }
 

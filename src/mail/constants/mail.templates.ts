@@ -1,10 +1,11 @@
 export const MailTemplates = {
   CONFIRM_SUBSCRIPTION: {
     subject: 'Confirm your subscription',
-    html: (link: string) => `
-      Click the link below to confirm your subscription:<br>
-      <a href="${link}">confirmation link</a>
-    `,
+    html: (link: string, token: string) => `
+    Your confirmation token: <b>${token}</b><br><br>
+    Or just use this link to confirm your subscription:<br>
+    <a href="${link}">confirmation link</a>
+  `,
   },
 
   UNSUBSCRIBE_SUCCESS: {

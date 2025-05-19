@@ -99,7 +99,7 @@ export class SubscriptionService {
     await this.mailService.sendMail({
       receiverEmail: email,
       subject: MailTemplates.CONFIRM_SUBSCRIPTION.subject,
-      html: MailTemplates.CONFIRM_SUBSCRIPTION.html(confirmLink),
+      html: MailTemplates.CONFIRM_SUBSCRIPTION.html(confirmLink, token),
     });
   }
 
