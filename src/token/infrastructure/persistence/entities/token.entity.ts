@@ -1,4 +1,4 @@
-import { SubscriptionEntity } from 'src/subscription/infrastructure/persistence/subscription.entity';
+import { SubscriptionEntity } from 'src/subscription/infrastructure/persistence/entities/subscription.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('tokens')

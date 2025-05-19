@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TypeOrmTokenRepository } from './infrastructure/persistance/typeorm-token.repository';
-import { TokenEntity } from './infrastructure/persistance/token.entity';
+import { TypeOrmTokenRepository } from './infrastructure/persistence/repositories/typeorm-token.repository';
+import { TokenEntity } from './infrastructure/persistence/entities/token.entity';
 import { TokenService } from './application/token.service';
 
 @Module({

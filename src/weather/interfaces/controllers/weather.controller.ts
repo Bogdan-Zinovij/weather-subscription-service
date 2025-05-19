@@ -6,10 +6,10 @@ import {
   NotFoundException,
   HttpStatus,
 } from '@nestjs/common';
-import { WeatherService } from '../application/weather.service';
-import { HTTP_ERROR_MESSAGES } from '../../common/constants/http.constants';
+import { WeatherService } from '../../application/weather.service';
+import { HTTP_ERROR_MESSAGES } from '../../../common/constants/http.constants';
 import { HttpError } from 'src/common/interfaces/http-error.interface';
-import { Weather } from '../domain/weather.model';
+import { Weather } from '../../domain/weather.model';
 
 @Controller('weather')
 export class WeatherController {

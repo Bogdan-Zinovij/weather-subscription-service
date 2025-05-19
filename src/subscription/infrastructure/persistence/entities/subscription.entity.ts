@@ -1,5 +1,5 @@
 import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
-import { TokenEntity } from 'src/token/infrastructure/persistance/token.entity';
+import { TokenEntity } from 'src/token/infrastructure/persistence/entities/token.entity';
 import {
   Column,
   Entity,

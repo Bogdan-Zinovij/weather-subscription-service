@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { SubscriptionEntity } from './subscription.entity';
+import { SubscriptionEntity } from '../entities/subscription.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Subscription } from '../../domain/subscription.model';
-import { SubscriptionRepository } from '../../domain/subscription.repository.interface';
+import { Subscription } from 'src/subscription/domain/subscription.model';
+import { SubscriptionRepository } from 'src/subscription/domain/subscription.repository.interface';
 import { SubscriptionFrequencyEnum } from 'src/common/enums/subscription-frequency.enum';
 
 @Injectable()

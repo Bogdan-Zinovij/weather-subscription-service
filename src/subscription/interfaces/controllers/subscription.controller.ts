@@ -12,12 +12,12 @@ import {
   NotFoundException,
   UseInterceptors,
 } from '@nestjs/common';
-import { SubscriptionService } from '../application/subscription.service';
-import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';
-import { HTTP_ERROR_MESSAGES } from '../../common/constants/http.constants';
-import { Subscription } from '../domain/subscription.model';
+import { SubscriptionService } from 'src/subscription/application/subscription.service';
+import { CreateSubscriptionDto } from 'src/subscription/dtos/create-subscription.dto';
+import { HTTP_ERROR_MESSAGES } from 'src/common/constants/http.constants';
+import { Subscription } from 'src/subscription/domain/subscription.model';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { SubscriptionErrorCode } from '../constants/subscription.errors';
+import { SubscriptionErrorCode } from 'src/subscription/constants/subscription.errors';
 import { TokenErrorCode } from 'src/token/constants/token.errors';
 
 @Controller('subscription')
