@@ -1,98 +1,117 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🌤️ Сервіс підписки на прогноз погоди
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Pастосунок дозволяє користувачам підписатися на отримання регулярного прогнозу погоди на електронну пошту для обраного міста. Підтримується щогодинна або щоденна частота оновлень. Також доступна можливість підтвердити або скасувати підписку використовуючи токен.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Інструкція з розгортання
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. Склонувати репозиторій:
 
-## Project setup
+   ```bash
+   git clone https://github.com/Bogdan-Zinovij/weather-subscription-service.git
+   cd weather-subscription-service
+   ```
 
-```bash
-$ npm install
-```
+2. Завантажити `.env` файл з Google Диску та помістити його в кореневу директорію проєкту.  
+   👉 [Завантажити `.env`](https://drive.google.com/file/d/1goJ6jrW1zd5qThr0Y0o7xgsQysHiN6I7/view?usp=sharing)
 
-## Compile and run the project
+3. Запустити додаток за допомогою Docker Compose:
 
-```bash
-# development
-$ npm run start
+   ```bash
+   docker compose up --build
+   ```
 
-# watch mode
-$ npm run start:dev
+   Додаток буде доступний локально на 3000 порті.
+   URL приклад запиту: http://localhost:3000/weather?city=Kyiv
 
-# production mode
-$ npm run start:prod
-```
+   - _Примітка_1_: серед логів при піднятті сервісу будуть виводитися і логи запуску міграцій таблиць Tokens, Subscriptions та додавання зв'язку між ними. (Файли міграцій знаходяться в /src/database/migrations)
+   - _Примітка_2_: існуючі контракти апі, що були описані в документації, не змінювалися. Деякі відповіді апі були розширені повідомленням тексту помилки
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## Деплой
 
-# e2e tests
-$ npm run test:e2e
+Застосунок задеплоєно на AWS EC2. Тут розміщено апі та html-сторінка для підписки за посиланням:
+🔗 [http://ec2-54-67-118-137.us-west-1.compute.amazonaws.com](http://ec2-54-67-118-137.us-west-1.compute.amazonaws.com)
 
-# test coverage
-$ npm run test:cov
-```
+---
 
-## Deployment
+## Використані технології та сервіси
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Технології:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- **NestJS** — фреймворк з модульною архітектурою для Node.js
+- **TypeScript** — як основна мова програмування зі строгою типізацією
+- **PostgreSQL** — реляційна база даних для збереження даних додатку
+- **TypeORM** — ORM для спрощеної роботи з базою даних
+- **Docker / Docker Compose** — для контейнеризації та локального запуску
+- **@nestjs-modules/mailer** — для надсилання email повідомлень
+- **AWS EC2** — хостинг додатку
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Сторонні сервіси:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- **WeatherAPI.com** — зовнішнє джерело даних про погоду
+- **SendPulse.com** — SMTP сервер для надсилання email-повідомлень
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## Архітектура
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Застосунок побудований на принципах **Clean Architecture**, що забезпечує масштабованість, зручність тестування та чисту бізнес-логіку.
 
-## Support
+- **Доменні моделі** (`Subscription`, `Weather`) ізольовані від інфраструктурної реалізації. Вони використовуються виключно в бізнес-логіці.
+- **Мапінг** між доменними моделями та ORM-ентіті в репозиторіях (`SubscriptionEntity`, `TokenEntity`) реалізовано окремо, щоб не змішувати бізнес-логіку з технічними деталями БД. В сервісі всі операції виконуються лише з доменними моделями.
+- **Інтерфейси репозиторіїв** описують поведінку доступу до даних, а конкретна реалізація (на базі TypeORM) інкапсульована всередині інфраструктурного шару.
+- Код поділений на шари:
+  - `application` — бізнес-логіка, сервіси
+  - `infrastructure` — доступ до БД (ентіті, репозиторії), сторонні API
+  - `interfaces` — контролери, вхідні/вихідні порти
+- Модульність - в основі кожного модуля інкапсулюється окрема доменна модель (або окремий сервіс) та пов'язана з нею логіка. Спільні константи та інтерфейси винесені в папку `common`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## Взаємодія модулів
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Користувач відправляє **POST /subscribe** з email, містом та періодом оновлень.
 
-## License
+  - `SubscriptionService` створює підписку, викликаючи репозиторій та `TokenService` для генерації токена.
+  - Email з токеном надсилається через `MailerService`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Користувач переходить по **GET /confirm/{token}**:
+
+  - `TokenService` перевіряє валідність токена, підписка підтверджується.
+
+- Через **GET /unsubscribe/{token}** — аналогічно, відбувається відписка.
+
+- Після кожного успішного запиту в ендпоінті `/subscription` викликається `MailService` для надсилання повідомлення для підтвердження підписки, про успішне оформлення підписки, оновлення погоди та скасування підписки.
+
+- Кожну годину або кожен день опівдні запускаються **cron-задачі**, які:
+
+  - Отримують всі підтверджені підписки з необхідною частотою
+  - Для кожного унікального міста з підписок кешують погоду з WeatherAPI.com
+  - Розсилають прогнози по email через SMTP сервер
+
+---
+
+## Демонстрація алгоритму проходження всіх успішних кейсів додатку
+
+HTML сторінка додатку роздається як статика, знаходиться за маршрутом `/`:
+![html-page](assets/images/1.png)
+
+На сторінці можна переглянути погоду для міста та підписатися на розсилку. Після підписки на розсилку з'являється текст з вказівкою переглянути поштову скриньку:
+![subscription-form](assets/images/2.png)
+
+На пошту приходить лист з токеном для підтвердження реєстрації. Можна скористатися посиланням, яке відправляє GET запит на `/subscriptions/confirm/${token}`.
+![confirmation](assets/images/3.png)
+
+Після цього на пошту приходить лист про успішне підтвердження підписки та поточною погодою у підписаному місті
+![successful-confirmation](assets/images/4.png)
+
+Далі, в залежності від вибраної періодичності раз в годину о хх:00 або ж раз на добу о 12:00 AM будуть приходити повідомлення зі станом погоди, якщо підписка підтверджена.
+![weather-update](assets/images/5.png)
+
+У кожному повідомленні з оновленням погоди прикріплюється лінк, що відправляє GET запит на `/subscriptions/confirm/${token}`, яким можна скористатися щоб скасувати підписку. Для цього використовується той самий токен, що був надісланий користувачу під час його реєстрації
+![unsubscribe](assets/images/6.png)
+
+Після скасування підписки, об'єкт підписки та токена видаляється з бази даних, і користувач знову може оформити нову підписку. Невалідні запити або неуспішні кейси повертають статус помилки згідно документації, а також повідомлення про тип помилки.
