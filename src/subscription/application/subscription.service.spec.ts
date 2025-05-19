@@ -113,9 +113,22 @@ describe('SubscriptionService', () => {
       confirmed: true,
       tokenId: 'token-id',
     });
+    weatherService.getCurrentWeather.mockResolvedValue({
+      temperature: 18,
+      humidity: 40,
+      description: 'Sunny',
+    });
 
     const result = await service.confirm('abc');
+
     expect(result.confirmed).toBe(true);
+    expect(weatherService.getCurrentWeather).toHaveBeenCalledWith('Kyiv');
+    expect(mailService.sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        receiverEmail: 'test@mail.com',
+        subject: MailTemplates.SUBSCRIPTION_CONFIRMED.subject,
+      }),
+    );
   });
 
   it('should unsubscribe a user and send mail', async () => {

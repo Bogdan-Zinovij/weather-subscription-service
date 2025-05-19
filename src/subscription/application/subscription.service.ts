@@ -61,12 +61,33 @@ export class SubscriptionService {
       throw new Error(SubscriptionErrorCode.TOKEN_NOT_FOUND);
     }
 
-    const subscription = found[0];
-    if (subscription.confirmed) return subscription;
+    let subscription = found[0];
+    if (!subscription.confirmed) {
+      subscription = (await this.subscriptionRepository.update(
+        subscription.id,
+        {
+          confirmed: true,
+        },
+      )) as Subscription;
+    }
 
-    return (await this.subscriptionRepository.update(subscription.id, {
-      confirmed: true,
-    })) as Subscription;
+    const unsubscribeLink = `http://${this.appDomain}:${this.appPort}/subscription/unsubscribe/${token.value}`;
+    const weather = await this.weatherService.getCurrentWeather(
+      subscription.city,
+    );
+
+    await this.mailService.sendMail({
+      receiverEmail: subscription.email,
+      subject: MailTemplates.SUBSCRIPTION_CONFIRMED.subject,
+      html: MailTemplates.SUBSCRIPTION_CONFIRMED.html(
+        subscription.frequency,
+        subscription.city,
+        weather,
+        unsubscribeLink,
+      ),
+    });
+
+    return subscription;
   }
 
   async unsubscribe(tokenValue: string): Promise<void> {
