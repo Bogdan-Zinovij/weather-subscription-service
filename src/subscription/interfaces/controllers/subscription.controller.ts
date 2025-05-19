@@ -15,7 +15,6 @@ import {
 import { SubscriptionService } from 'src/subscription/application/subscription.service';
 import { CreateSubscriptionDto } from 'src/subscription/dtos/create-subscription.dto';
 import { HTTP_ERROR_MESSAGES } from 'src/common/constants/http.constants';
-import { Subscription } from 'src/subscription/domain/subscription.model';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { SubscriptionErrorCode } from 'src/subscription/constants/subscription.errors';
 import { TokenErrorCode } from 'src/token/constants/token.errors';
@@ -27,9 +26,9 @@ export class SubscriptionController {
   @Post('subscribe')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(AnyFilesInterceptor())
-  async subscribe(@Body() dto: CreateSubscriptionDto): Promise<Subscription> {
+  async subscribe(@Body() dto: CreateSubscriptionDto): Promise<void> {
     try {
-      return await this.subscriptionService.subscribe(dto);
+      await this.subscriptionService.subscribe(dto);
     } catch (err) {
       switch (err.message) {
         case SubscriptionErrorCode.EMAIL_ALREADY_SUBSCRIBED:
@@ -43,9 +42,9 @@ export class SubscriptionController {
   }
 
   @Get('confirm/:token')
-  async confirm(@Param('token') token: string): Promise<Subscription | null> {
+  async confirm(@Param('token') token: string): Promise<void> {
     try {
-      return await this.subscriptionService.confirm(token);
+      await this.subscriptionService.confirm(token);
     } catch (err) {
       switch (err.message) {
         case TokenErrorCode.INVALID_TOKEN:

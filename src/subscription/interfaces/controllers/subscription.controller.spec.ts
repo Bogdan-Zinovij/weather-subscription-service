@@ -8,7 +8,11 @@ import { SubscriptionService } from 'src/subscription/application/subscription.s
 
 describe('SubscriptionController', () => {
   let controller: SubscriptionController;
-  let service: jest.Mocked<SubscriptionService>;
+  let service: {
+    subscribe: jest.Mock<Promise<void>, [any]>;
+    confirm: jest.Mock<Promise<void>, [string]>;
+    unsubscribe: jest.Mock<Promise<void>, [string]>;
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,23 +33,26 @@ describe('SubscriptionController', () => {
     service = module.get(SubscriptionService);
   });
 
-  it('should return subscription on subscribe', async () => {
-    service.subscribe.mockResolvedValue({
-      id: '1',
-      email: 'test@mail.com',
-      city: 'Kyiv',
-      frequency: SubscriptionFrequencyEnum.HOURLY,
-      confirmed: false,
-      tokenId: 'token-id',
-    });
+  it('should call subscribe() without throwing', async () => {
+    service.subscribe.mockResolvedValue(undefined);
 
-    const result = await controller.subscribe({
-      email: 'test@mail.com',
-      city: 'Kyiv',
-      frequency: SubscriptionFrequencyEnum.HOURLY,
-    });
+    await expect(
+      controller.subscribe({
+        email: 'test@mail.com',
+        city: 'Kyiv',
+        frequency: SubscriptionFrequencyEnum.HOURLY,
+      }),
+    ).resolves.toBeUndefined();
 
-    expect(result.email).toBe('test@mail.com');
+    expect(service.subscribe).toHaveBeenCalled();
+  });
+
+  it('should call confirm() without throwing', async () => {
+    service.confirm.mockResolvedValue(undefined);
+
+    await expect(controller.confirm('token')).resolves.toBeUndefined();
+
+    expect(service.confirm).toHaveBeenCalledWith('token');
   });
 
   it('should throw ConflictException if email already subscribed', async () => {
@@ -62,24 +69,6 @@ describe('SubscriptionController', () => {
     ).rejects.toThrow(ConflictException);
   });
 
-  it('should return confirmed subscription', async () => {
-    const subscription = {
-      id: '1',
-      email: 'test@mail.com',
-      city: 'Kyiv',
-      frequency: SubscriptionFrequencyEnum.HOURLY,
-      confirmed: true,
-      tokenId: 'token-id',
-    };
-
-    service.confirm.mockResolvedValue(subscription);
-
-    const result = await controller.confirm('token');
-
-    expect(result).not.toBeNull();
-    expect(result?.confirmed).toBe(true);
-  });
-
   it('should throw NotFoundException if token not found on confirm', async () => {
     service.confirm.mockRejectedValue(
       new Error(SubscriptionErrorCode.TOKEN_NOT_FOUND),
@@ -92,7 +81,6 @@ describe('SubscriptionController', () => {
 
   it('should call unsubscribe()', async () => {
     await controller.unsubscribe('token');
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.unsubscribe).toHaveBeenCalledWith('token');
   });
 
