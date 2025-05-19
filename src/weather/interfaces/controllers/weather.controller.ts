@@ -27,7 +27,6 @@ export class WeatherController {
       const weather = await this.weatherService.getCurrentWeather(city);
       return weather;
     } catch (err: unknown) {
-      console.log(err);
       const error = err as HttpError;
 
       if (error.response?.status === HttpStatus.BAD_REQUEST) {
