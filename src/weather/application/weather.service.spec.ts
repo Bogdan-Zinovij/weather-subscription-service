@@ -8,6 +8,7 @@ import { Weather } from '../domain/weather.model';
 
 describe('WeatherService', () => {
   let service: WeatherService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let httpService: HttpService;
 
   const mockAppConfigService = {
@@ -32,10 +33,6 @@ describe('WeatherService', () => {
 
     service = module.get<WeatherService>(WeatherService);
     httpService = module.get<HttpService>(HttpService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
   });
 
   it('should return current weather for a city', async () => {

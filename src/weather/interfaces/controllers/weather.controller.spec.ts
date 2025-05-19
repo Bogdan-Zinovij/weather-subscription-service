@@ -7,6 +7,7 @@ import { HTTP_ERROR_MESSAGES } from 'src/common/constants/http.constants';
 
 describe('WeatherController', () => {
   let controller: WeatherController;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let weatherService: WeatherService;
 
   const mockWeatherService = {
